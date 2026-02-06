@@ -6,27 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Platform\ActivityLog\Traits\LogsActivity;
 use Symfony\Component\Uid\UuidV7;
 
-class TrainingSession extends Model
+class Instructor extends Model
 {
     use SoftDeletes, LogsActivity;
 
-    protected $table = 'training_sessions';
+    protected $table = 'training_instructors';
 
     protected $fillable = [
         'uuid',
-        'training_id',
-        'title',
+        'name',
+        'email',
+        'phone',
         'description',
-        'starts_at',
-        'ends_at',
-        'location',
-        'min_participants',
-        'max_participants',
-        'status',
         'is_active',
         'team_id',
         'created_by_user_id',
@@ -35,10 +29,6 @@ class TrainingSession extends Model
     ];
 
     protected $casts = [
-        'starts_at' => 'datetime',
-        'ends_at' => 'datetime',
-        'min_participants' => 'integer',
-        'max_participants' => 'integer',
         'is_active' => 'boolean',
         'metadata' => 'array',
     ];
@@ -55,19 +45,14 @@ class TrainingSession extends Model
         });
     }
 
-    public function training(): BelongsTo
+    public function trainings(): BelongsToMany
     {
-        return $this->belongsTo(Training::class, 'training_id');
+        return $this->belongsToMany(Training::class, 'training_instructor', 'instructor_id', 'training_id');
     }
 
-    public function instructors(): BelongsToMany
+    public function sessions(): BelongsToMany
     {
-        return $this->belongsToMany(Instructor::class, 'training_session_instructor', 'training_session_id', 'instructor_id');
-    }
-
-    public function enrollments(): HasMany
-    {
-        return $this->hasMany(Enrollment::class, 'training_session_id');
+        return $this->belongsToMany(TrainingSession::class, 'training_session_instructor', 'instructor_id', 'training_session_id');
     }
 
     public function team(): BelongsTo

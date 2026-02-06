@@ -5,28 +5,21 @@ namespace Platform\Training\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Platform\ActivityLog\Traits\LogsActivity;
+use Platform\Training\Traits\HasCrmContact;
 use Symfony\Component\Uid\UuidV7;
 
-class TrainingSession extends Model
+class Participant extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use SoftDeletes, LogsActivity, HasCrmContact;
 
-    protected $table = 'training_sessions';
+    protected $table = 'training_participants';
 
     protected $fillable = [
         'uuid',
-        'training_id',
-        'title',
-        'description',
-        'starts_at',
-        'ends_at',
-        'location',
-        'min_participants',
-        'max_participants',
-        'status',
+        'hcm_employee_id',
+        'notes',
         'is_active',
         'team_id',
         'created_by_user_id',
@@ -35,10 +28,6 @@ class TrainingSession extends Model
     ];
 
     protected $casts = [
-        'starts_at' => 'datetime',
-        'ends_at' => 'datetime',
-        'min_participants' => 'integer',
-        'max_participants' => 'integer',
         'is_active' => 'boolean',
         'metadata' => 'array',
     ];
@@ -55,19 +44,14 @@ class TrainingSession extends Model
         });
     }
 
-    public function training(): BelongsTo
+    public function hcmEmployee(): BelongsTo
     {
-        return $this->belongsTo(Training::class, 'training_id');
-    }
-
-    public function instructors(): BelongsToMany
-    {
-        return $this->belongsToMany(Instructor::class, 'training_session_instructor', 'training_session_id', 'instructor_id');
+        return $this->belongsTo(\Platform\Hcm\Models\HcmEmployee::class, 'hcm_employee_id');
     }
 
     public function enrollments(): HasMany
     {
-        return $this->hasMany(Enrollment::class, 'training_session_id');
+        return $this->hasMany(Enrollment::class, 'participant_id');
     }
 
     public function team(): BelongsTo

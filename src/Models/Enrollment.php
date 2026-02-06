@@ -5,30 +5,30 @@ namespace Platform\Training\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Platform\ActivityLog\Traits\LogsActivity;
 use Symfony\Component\Uid\UuidV7;
 
-class TrainingGroup extends Model
+class Enrollment extends Model
 {
     use SoftDeletes, LogsActivity;
 
-    protected $table = 'training_groups';
+    protected $table = 'training_enrollments';
 
     protected $fillable = [
         'uuid',
-        'name',
-        'code',
-        'description',
-        'is_active',
-        'parent_id',
+        'training_session_id',
+        'participant_id',
+        'status',
+        'notes',
+        'enrolled_at',
         'team_id',
         'created_by_user_id',
-        'owned_by_user_id',
+        'metadata',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'enrolled_at' => 'datetime',
+        'metadata' => 'array',
     ];
 
     protected static function booted(): void
@@ -40,22 +40,21 @@ class TrainingGroup extends Model
                 } while (self::where('uuid', $uuid)->exists());
                 $model->uuid = $uuid;
             }
+
+            if (empty($model->enrolled_at)) {
+                $model->enrolled_at = now();
+            }
         });
     }
 
-    public function parent(): BelongsTo
+    public function session(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_id');
+        return $this->belongsTo(TrainingSession::class, 'training_session_id');
     }
 
-    public function children(): HasMany
+    public function participant(): BelongsTo
     {
-        return $this->hasMany(self::class, 'parent_id');
-    }
-
-    public function trainings(): HasMany
-    {
-        return $this->hasMany(Training::class, 'group_id');
+        return $this->belongsTo(Participant::class, 'participant_id');
     }
 
     public function team(): BelongsTo
@@ -66,10 +65,5 @@ class TrainingGroup extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(\App\Models\User::class, 'created_by_user_id');
-    }
-
-    public function ownedBy(): BelongsTo
-    {
-        return $this->belongsTo(\App\Models\User::class, 'owned_by_user_id');
     }
 }

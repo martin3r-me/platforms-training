@@ -43,7 +43,36 @@ class Training extends Model
                 } while (self::where('uuid', $uuid)->exists());
                 $model->uuid = $uuid;
             }
+
+            if (empty($model->code)) {
+                $model->code = static::generateCode($model->group_id, $model->team_id);
+            }
         });
+    }
+
+    public static function generateCode(?int $groupId, ?int $teamId): string
+    {
+        $prefix = 'TRN';
+
+        if ($groupId) {
+            $group = TrainingGroup::find($groupId);
+            if ($group && $group->code) {
+                $prefix = $group->code;
+            }
+        }
+
+        $lastCode = static::where('team_id', $teamId)
+            ->where('code', 'like', $prefix . '-%')
+            ->withTrashed()
+            ->orderByRaw("CAST(SUBSTRING_INDEX(code, '-', -1) AS UNSIGNED) DESC")
+            ->value('code');
+
+        $nextNumber = 1;
+        if ($lastCode && preg_match('/-(\d+)$/', $lastCode, $matches)) {
+            $nextNumber = (int) $matches[1] + 1;
+        }
+
+        return $prefix . '-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     public function group(): BelongsTo
@@ -80,6 +109,11 @@ class Training extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(TrainingSession::class, 'training_id');
+    }
+
+    public function instructors(): BelongsToMany
+    {
+        return $this->belongsToMany(Instructor::class, 'training_instructor', 'training_id', 'instructor_id');
     }
 
     public function team(): BelongsTo
