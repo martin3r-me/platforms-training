@@ -145,6 +145,30 @@
                                         @endif
                                         @svg('heroicon-o-users', 'w-3.5 h-3.5')
                                     </a>
+                                    @if($session->enrollments->count() > 0)
+                                        <div class="mt-1 space-y-0.5">
+                                            @foreach($session->enrollments->take(5) as $enrollment)
+                                                <div class="text-xs text-[var(--ui-muted)] flex items-center gap-1">
+                                                    @svg('heroicon-o-user', 'w-3 h-3 shrink-0')
+                                                    <span class="truncate max-w-[10rem]">{{ $enrollment->participant->full_name ?? '–' }}</span>
+                                                    @if($enrollment->status === 'cancelled')
+                                                        <span class="text-red-400 text-[10px]">(storniert)</span>
+                                                    @elseif($enrollment->status === 'confirmed')
+                                                        <span class="text-green-500 text-[10px]">(bestätigt)</span>
+                                                    @elseif($enrollment->status === 'attended')
+                                                        <span class="text-blue-500 text-[10px]">(teilgenommen)</span>
+                                                    @elseif($enrollment->status === 'no_show')
+                                                        <span class="text-amber-500 text-[10px]">(nicht erschienen)</span>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                            @if($session->enrollments->count() > 5)
+                                                <div class="text-xs text-[var(--ui-muted)] italic">
+                                                    +{{ $session->enrollments->count() - 5 }} weitere
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </x-ui-table-cell>
                                 <x-ui-table-cell compact="true">
                                     @if($session->instructors->count() > 0)

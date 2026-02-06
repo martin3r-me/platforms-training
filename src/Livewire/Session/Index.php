@@ -55,7 +55,7 @@ class Index extends Component
         $user = Auth::user();
         $team = $user->currentTeam;
 
-        $sessions = TrainingSession::with(['training.group', 'training.instructors', 'instructors'])
+        $sessions = TrainingSession::with(['training.group', 'training.instructors', 'instructors', 'enrollments.participant.crmContactLinks.contact'])
             ->withCount('enrollments')
             ->whereHas('training', function ($q) use ($team) {
                 $q->where('team_id', $team->id);
