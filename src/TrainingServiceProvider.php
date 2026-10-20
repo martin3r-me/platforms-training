@@ -3,7 +3,6 @@
 namespace Platform\Training;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Platform\Core\PlatformCore;
@@ -23,7 +22,7 @@ class TrainingServiceProvider extends ServiceProvider
         if (
             config()->has('training.routing') &&
             config()->has('training.navigation') &&
-            Schema::hasTable('modules')
+            PlatformCore::modulesTableExists()
         ) {
             PlatformCore::registerModule([
                 'key'        => 'training',
